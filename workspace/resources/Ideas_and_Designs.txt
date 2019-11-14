@@ -1,0 +1,22 @@
+When user press the button on the phone, 
+- Watch will light up and
+- Display on screen
+and the person with the watch responds to door bell
+- Send a notification to the watch
+- LED light up
+
+Android Java XML - send sms to android app user when tinyduino responds
+
+Android Java XML + Tinyduino
+ - Android Java XML app will send bluetooth transmission message to watch
+ - If watch responds, watch will send a notification message via bluetooth to Android
+	- Hardcoded Message
+
+
+What we have:
+	1. Able to receive bluetooth message from android phone - using Nrf UART v2.0
+	2. Able to make Tinyduino blink from Android phone - using Nrf UART v2.0 
+
+Question?
+	1. How to get the tinyduino to send message to Android - Function in UART passthrough
+		- Hardcode message to send to Android for notifications via bluetooth
