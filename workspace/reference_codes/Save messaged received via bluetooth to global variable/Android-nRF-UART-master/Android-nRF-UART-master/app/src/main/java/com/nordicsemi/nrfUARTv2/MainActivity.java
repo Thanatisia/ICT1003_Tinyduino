@@ -91,7 +91,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        Toast.makeText(this, "YES, FUCKER", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "YES", Toast.LENGTH_LONG).show();
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBtAdapter == null) {
             Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
