@@ -41,16 +41,13 @@ void setup() {
   BLEsetup();
 }
 
-char *received_message = "";  /* Message received from bluetooth */
 
 void loop() {
   aci_loop();//Process any ACI commands or events from the NRF8001- main BLE handler, must run often. Keep main loop short.
   if (ble_rx_buffer_len) {//Check if data is available
     SerialMonitorInterface.print(ble_rx_buffer_len);
     SerialMonitorInterface.print(" : ");
-    /* Store message to global variable */
-    received_message = (char*)ble_rx_buffer; /* Global variable */
-    SerialMonitorInterface.println(received_message); /* Receive Message */
+    SerialMonitorInterface.println((char*)ble_rx_buffer);
     ble_rx_buffer_len = 0;//clear afer reading
   }
   if (SerialMonitorInterface.available()) {//Check if serial input is available to send
@@ -75,3 +72,4 @@ void loop() {
     }
   }
 }
+
