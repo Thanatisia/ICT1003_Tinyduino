@@ -17,6 +17,9 @@ uint16_t connection_handle = 0;
 
 int connected = FALSE;
 
+/* Device information */
+char *global_target_bluetooth_ID_str = ""; /* Connected Android's Bluetooth ID */
+char *global_target_bluetooth_name = ""; /* Connected Android's Bluetooth name */
 
 int BLEsetup() {
   int ret;
@@ -166,7 +169,8 @@ void setConnectable(void)
 {
   tBleStatus ret;
 
-  const char local_name[] = {AD_TYPE_COMPLETE_LOCAL_NAME, 'B', 'l', 'u', 'e', 'N', 'R', 'G'};
+  /* const char local_name[] = {AD_TYPE_COMPLETE_LOCAL_NAME, 'B', 'l', 'u', 'e', 'N', 'R', 'G'}; */
+  const char local_name[] = {AD_TYPE_COMPLETE_LOCAL_NAME, 'A', 's', 'u', 'r', 'a', 'N', 'R', 'G'};
 
   hci_le_set_scan_resp_data(0, NULL);
   PRINTF("General Discoverable Mode.\n");
@@ -193,6 +197,8 @@ void Attribute_Modified_CB(uint16_t handle, uint8_t data_length, uint8_t *att_da
   }
 }
 
+char *tmp_msg = "";
+
 void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle) {
 
   connected = TRUE;
@@ -200,9 +206,27 @@ void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle) {
 
   PRINTF("Connected to device:");
   for (int i = 5; i > 0; i--) {
+    /* global_target_bluetooth_ID = "" */
     PRINTF("%02X-", addr[i]);
+    
+    /*
+    sprintf(tmp_msg, "%02X-", addr[i]);
+    global_target_bluetooth_ID[i] = strcat(global_target_bluetooth_ID, tmp_msg);
+    */
   }
   PRINTF("%02X\r\n", addr[0]);
+  /*
+  sprintf(tmp_msg, "%02X\r\n", addr[0]);
+  global_target_bluetooth_ID[6] = strcat(global_target_bluetooth_ID, tmp_msg);
+  PRINTF("%s", global_target_bluetooth_ID);
+  */
+  
+  /*
+  for (int i = 5; i > 0; i--) {
+      PRINTF("TEST [addr[%d] %x]: ", i, addr[i]);
+  }
+  PRINTF("TEST [addr[0]]: %x", addr[0]);
+  */
 }
 
 void GAP_DisconnectionComplete_CB(void) {
@@ -239,7 +263,9 @@ void HCI_Event_CB(void *pckt)
           case EVT_LE_CONN_COMPLETE:
             {
               evt_le_connection_complete *cc = (evt_le_connection_complete *)evt->data;
-              GAP_ConnectionComplete_CB(cc->peer_bdaddr, cc->handle);
+              global_target_bluetooth_ID_str = cc->peer_bdaddr; /* Get connected Android Device's bluetooth ID address (bdaddr)*/
+              GAP_ConnectionComplete_CB(global_target_bluetooth_ID_str, cc->handle);
+              /* GAP_ConnectionComplete_CB(cc->peer_bdaddr, cc->handle); */
             }
             break;
         }
