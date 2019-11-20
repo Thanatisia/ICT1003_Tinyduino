@@ -49,7 +49,7 @@ void loop() {
     SerialMonitorInterface.print(ble_rx_buffer_len);
     SerialMonitorInterface.print(" : ");
     /* Store message to global variable */
-    received_message = (char*)ble_rx_buffer; 
+    received_message = (char*)ble_rx_buffer; /* Global variable */
     SerialMonitorInterface.println(received_message); /* Receive Message */
     ble_rx_buffer_len = 0;//clear afer reading
   }
