@@ -59,6 +59,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.nordicsemi.nrfUARTv2.MainActivity;
 
 public class DeviceListActivity extends Activity {
     private BluetoothAdapter mBluetoothAdapter;
@@ -232,12 +233,10 @@ public class DeviceListActivity extends Activity {
   
             Bundle b = new Bundle();
             b.putString(BluetoothDevice.EXTRA_DEVICE, deviceList.get(position).getAddress());
-
             Intent result = new Intent();
             result.putExtras(b);
             setResult(Activity.RESULT_OK, result);
             finish();
-        	
         }
     };
 

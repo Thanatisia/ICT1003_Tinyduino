@@ -66,6 +66,7 @@ import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.nordicsemi.nrfUARTv2.DeviceListActivity.DeviceAdapter;
 
 public class MainActivity extends Activity implements RadioGroup.OnCheckedChangeListener {
     private static final int REQUEST_SELECT_DEVICE = 1;
@@ -75,7 +76,10 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     private static final int UART_PROFILE_CONNECTED = 20;
     private static final int UART_PROFILE_DISCONNECTED = 21;
     private static final int STATE_OFF = 10;
-    public static String global_receiver_message = "";
+    private static final String accepted_bluetooth_name = "AsuraNRG"; /* Tinyduino Device name */
+    public static String global_receiver_message = "";    /* Received message from Tinyduino Bluetooth */
+    public static String global_target_bluetooth_ID = ""; /* Connected Tinyduino Bluetooth ID */
+    public static String global_target_bluetooth_name = ""; /* Connected Tinyduino Bluetooth name */
 
     TextView mRemoteRssiVal;
     RadioGroup mRg;
@@ -91,7 +95,6 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        Toast.makeText(this, "YES", Toast.LENGTH_LONG).show();
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBtAdapter == null) {
             Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
@@ -196,6 +199,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
 
             final Intent mIntent = intent;
            //*********************//
+            /* After connecting to selected Bluetooth device */
             if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
             	 runOnUiThread(new Runnable() {
                      public void run() {
@@ -205,6 +209,8 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                              edtMessage.setEnabled(true);
                              btnSend.setEnabled(true);
                              ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName()+ " - ready");
+                             global_target_bluetooth_name = mDevice.getName(); /* Retrieve connected device's bluetooth name */
+                             showMessage("DEBUG:" + "\n" + "Connected Bluetooth ID:" + " " + global_target_bluetooth_ID + "\n" + "Connected Bluetooth Name:" + " " + global_target_bluetooth_name); //DEBUG: Testing output
                              listAdapter.add("["+currentDateTimeString+"] Connected to: "+ mDevice.getName());
                         	 	messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
                              mState = UART_PROFILE_CONNECTED;
@@ -222,7 +228,8 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                              edtMessage.setEnabled(false);
                              btnSend.setEnabled(false);
                              ((TextView) findViewById(R.id.deviceName)).setText("Not Connected");
-                             listAdapter.add("["+currentDateTimeString+"] Disconnected to: "+ mDevice.getName());
+//                             listAdapter.add("["+currentDateTimeString+"] Disconnected to: "+ mDevice.getName());
+                             listAdapter.add("["+currentDateTimeString+"] Disconnected from: "+ mDevice.getName());
                              mState = UART_PROFILE_DISCONNECTED;
                              mService.close();
                             //setUiState();
@@ -244,8 +251,15 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                      public void run() {
                          try {
                          	String text = new String(txValue, "UTF-8");
-                         	global_receiver_message = text;
-                         	showMessage(global_receiver_message);
+                         	if(text != null && !text.isEmpty() && !text.equals("null"))
+                            {
+                                global_receiver_message = text;
+                            }
+                         	else
+                            {
+                                global_receiver_message = "Empty";
+                            }
+                         	showMessage("DEBUG:" + "\n" + global_receiver_message); /* DEBUG: Display retrieved message */
                          	String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                         	 	listAdapter.add("["+currentDateTimeString+"] RX: "+text);
                         	 	messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
@@ -344,12 +358,12 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
         	//When the DeviceListActivity return, with the selected device address
             if (resultCode == Activity.RESULT_OK && data != null) {
                 String deviceAddress = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
+                global_target_bluetooth_ID = deviceAddress; /* Retrieve connected device's bluetooth hex ID */
                 mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress);
                
                 Log.d(TAG, "... onActivityResultdevice.address==" + mDevice + "mserviceValue" + mService);
                 ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName()+ " - connecting");
                 mService.connect(deviceAddress);
-
             }
             break;
         case REQUEST_ENABLE_BT:
