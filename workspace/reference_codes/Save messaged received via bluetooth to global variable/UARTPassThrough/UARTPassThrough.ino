@@ -57,7 +57,7 @@ void setup() {
 char *received_message = "";  /* Message received from bluetooth */
     
 void loop() {
-  display_stuff();
+  display_prompt();
   while(1)
   {
     if (display.getButtons(TSButtonLowerLeft)) {
@@ -69,13 +69,13 @@ void loop() {
       lib_aci_send_data(0, "1", 2);
       delay(1000);
       display.clearScreen();
-      display_stuff();
+      display_prompt();
     }
     else if (display.getButtons(TSButtonLowerRight)) {
       display.clearScreen();
       lib_aci_send_data(0, "0", 2);
       delay(1000);
-      display_stuff();
+      display_prompt();
     }
     aci_loop();//Process any ACI commands or events from the NRF8001- main BLE handler, must run often. Keep main loop short.
     if (ble_rx_buffer_len) {//Check if data is available
@@ -110,7 +110,7 @@ void loop() {
   } 
 }
 
-void display_stuff()
+void display_prompt()
 {
   display.setFont(liberationSans_10ptFontInfo);
   display.setCursor(0,0);
