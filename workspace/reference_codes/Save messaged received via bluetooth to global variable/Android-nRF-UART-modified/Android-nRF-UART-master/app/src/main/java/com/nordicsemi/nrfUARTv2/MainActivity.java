@@ -76,7 +76,9 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     private static final int UART_PROFILE_CONNECTED = 20;
     private static final int UART_PROFILE_DISCONNECTED = 21;
     private static final int STATE_OFF = 10;
-    private static final String accepted_bluetooth_name = "AsuraNRG"; /* Tinyduino Device name */
+    public static final String accepted_bluetooth_name = "LOCK"; /* Tinyduino Device name */
+//    public static final String accepted_bluetooth_ID = "DA:AB:1D:0E:AF:00"; /* Tinyduino Device's MAC Address */
+    public static final String accepted_bluetooth_ID = "D1:DA:3B:AE:32:A7";
     public static String global_receiver_message = "";    /* Received message from Tinyduino Bluetooth */
     public static String global_target_bluetooth_ID = ""; /* Connected Tinyduino Bluetooth ID */
     public static String global_target_bluetooth_name = ""; /* Connected Tinyduino Bluetooth name */
@@ -131,7 +133,6 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
         				if (mDevice!=null)
         				{
         					mService.disconnect();
-        					
         				}
         			}
                 }
@@ -259,8 +260,31 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                             {
                                 global_receiver_message = "Empty";
                             }
-                         	showMessage("DEBUG:" + "\n" + global_receiver_message); /* DEBUG: Display retrieved message */
-                         	String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                         	/* Function/Action : If received message is '1' :
+                         	Disconnect from current bluetooth
+                         	Search for Bluetooth and
+                         	Select
+                         	*/
+                             if(global_receiver_message.contains("1"))
+                             {
+                                 showMessage("Received 1 : Searching for bluetooth" + " " + "[" + global_target_bluetooth_name + "]" + " " + "and connecting ");
+
+                                 //Disconnect device
+                                 //mService.disconnect();
+
+                                 //Connect to [Lock] Server device
+                                 showMessage(accepted_bluetooth_ID);
+                                 //global_receiver_message = "";
+                                 //mService.connect(accepted_bluetooth_ID);
+
+
+                                 //On Connect:
+                                 mService.writeRXCharacteristic("1".getBytes("UTF-8"));
+                                 //Disconnect after sending
+                                 //mService.disconnect();
+                             }
+                             //showMessage("DEBUG:" + "\n" + global_receiver_message); /* DEBUG: Display retrieved message */
+                         	 String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                         	 	listAdapter.add("["+currentDateTimeString+"] RX: "+text);
                         	 	messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
                          } catch (Exception e) {
