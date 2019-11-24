@@ -15,6 +15,7 @@
 
 #define MAX_WIDTH       96    /* 96 Pixels */
 #define MAX_HEIGHT      64    /* 64 Pixels */
+#define UNIQUE_KEY_ACCEPT "SMARTLOCK_1"
 #define BLACK           0x00
 #define BLUE            0xE0
 #define RED             0x03
@@ -88,7 +89,8 @@ void loop() {
       /* Store message to global variable */
       received_message = (char*)ble_rx_buffer; 
       SerialMonitorInterface.println(received_message); /* Receive Message */
-      if(strstr(received_message, "1"))
+      //if(strcmp(received_message, "1")==0) //If received_message is equals to "1"
+      if(strcmp(received_message, UNIQUE_KEY_ACCEPT)==0) //If received_message is equals to "1"
       {
         SerialMonitorInterface.println("DOOR OPEN"); /* Receive Message */
         display.clearScreen();
@@ -107,7 +109,7 @@ void loop() {
         display.setFont(liberationSans_12ptFontInfo);
         display.fontColor(GREEN,BLACK);
         display.setCursor(3,20);
-        display.print("Door Remains");
+        display.print("Door Locked");
         delay(1000);
         display.clearScreen();
         display_prompt();
