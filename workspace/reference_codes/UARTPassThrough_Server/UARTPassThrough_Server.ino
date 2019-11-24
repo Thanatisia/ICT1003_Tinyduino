@@ -83,13 +83,52 @@ void loop() {
     }
     */
     aci_loop();//Process any ACI commands or events from the NRF8001- main BLE handler, must run often. Keep main loop short.
-    if (ble_rx_buffer_len) {//Check if data is available
+
+    /* Check if connected to bluetooth */
+    if(ble_connection_state)
+    {
+      display.clearScreen();
+      display.setFont(liberationSans_10ptFontInfo);
+      display.fontColor(GREEN,BLACK);
+      display.setCursor(5,10);
+      display.print("Connected");
+      display.setCursor(0,30);
+      display.print("Waiting for reply");
+      delay(1000);
+      /*
+      display.clearScreen();
+      display.setFont(liberationSans_10ptFontInfo);
+      display.fontColor(GREEN,BLACK);
+      display.setCursor(5,20);
+      display.print("Not Connected");
+      delay(1000);
+      */
+    }
+    if (ble_rx_buffer_len) {//Check if data is available     
+      if(ble_connection_state)
+      {
+        /*
+        display.clearScreen();
+        display.setFont(liberationSans_10ptFontInfo);
+        display.fontColor(GREEN,BLACK);
+        display.setCursor(5,20);
+        display.print("Connected");
+        delay(2000);
+        */
+        display.clearScreen();
+        display.setCursor(0,20);
+        display.print("Reply received.");
+        delay(2000); 
+  //    delay(2000);
+  //    display.clearScreen();
+  //    display_prompt(); 
+      } 
       SerialMonitorInterface.print(ble_rx_buffer_len);
       SerialMonitorInterface.print(" : ");
       /* Store message to global variable */
       received_message = (char*)ble_rx_buffer; 
       SerialMonitorInterface.println(received_message); /* Receive Message */
-      //if(strcmp(received_message, "1")==0) //If received_message is equals to "1"
+      //if(strcmp(received_message, "1")==0) //If received_message is equals to "1"ss
       if(strcmp(received_message, UNIQUE_KEY_ACCEPT)==0) //If received_message is equals to "1"
       {
         SerialMonitorInterface.println("DOOR OPEN"); /* Receive Message */
@@ -99,6 +138,18 @@ void loop() {
         display.setCursor(5,20);
         display.print("Door Open");
         delay(1000);
+        /* If connection is made - Send a reply before disconnecting */
+        if (ble_connection_state)
+        {
+          lib_aci_send_data(0, "1", 2);
+          GAP_DisconnectionComplete_CB();
+          display.clearScreen();
+          display.setFont(liberationSans_10ptFontInfo);
+          display.fontColor(GREEN,BLACK);
+          display.setCursor(5,20);
+          display.print("Disconnected");
+          delay(2000);
+        }
         display.clearScreen();
         display_prompt();
       }
@@ -111,11 +162,25 @@ void loop() {
         display.setCursor(3,20);
         display.print("Door Locked");
         delay(1000);
+        /* If connection is made - Send a reply before disconnecting */
+        if (ble_connection_state)
+        {
+          lib_aci_send_data(0, "0", 2);
+          GAP_DisconnectionComplete_CB();
+          display.clearScreen();
+          display.setFont(liberationSans_10ptFontInfo);
+          display.fontColor(GREEN,BLACK);
+          display.setCursor(5,20);
+          display.print("Disconnected");
+          delay(2000);
+        }
         display.clearScreen();
         display_prompt();
       }
+      
       ble_rx_buffer_len = 0;//clear afer reading
     }
+    
     if (SerialMonitorInterface.available()) {//Check if serial input is available to send
       delay(10);//should catch input
       uint8_t sendBuffer[21];
@@ -138,6 +203,30 @@ void loop() {
       }
     }
   } 
+}
+
+void no_input()
+{
+  int width = 0;
+  char *display_str = "";
+  
+  display_str = "No Input";
+  display.setFont(liberationSans_10ptFontInfo);
+  display.setCursor((MAX_WIDTH/4),(MAX_HEIGHT)/4);
+  display.fontColor(WHITE,BLACK);
+  display.print (display_str);
+}
+
+void not_connected()
+{
+  int width = 0;
+  char *display_str = "";
+  
+  display_str = "No Input";
+  display.setFont(liberationSans_10ptFontInfo);
+  display.setCursor((MAX_WIDTH/4),(MAX_HEIGHT)/4);
+  display.fontColor(WHITE,BLACK);
+  display.print (display_str);
 }
 
 void display_prompt()

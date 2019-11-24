@@ -170,6 +170,7 @@ void setConnectable(void)
   tBleStatus ret;
 
   /* const char local_name[] = {AD_TYPE_COMPLETE_LOCAL_NAME, 'B', 'l', 'u', 'e', 'N', 'R', 'G'}; */
+//  const char local_name[] = {AD_TYPE_COMPLETE_LOCAL_NAME, 'A', 's', 'u', 'r', 'a', 'N', 'R', 'G', '2'};
   const char local_name[] = {AD_TYPE_COMPLETE_LOCAL_NAME, 'L','O','C','K','_','J','u','s','t','i','n'};
 
   hci_le_set_scan_resp_data(0, NULL);
