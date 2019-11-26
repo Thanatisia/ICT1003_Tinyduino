@@ -63,30 +63,6 @@ void loop() {
   display_prompt();
   while(1)
   {
-    /* Validator - For user to press if they want to check if the device is hang or still alive */
-    if (display.getButtons(TSButtonLowerLeft)) 
-    {
-      display.clearScreen();
-      display.setFont(liberationSans_10ptFontInfo);
-      display.fontColor(WHITE,BLACK);
-      display.setCursor(0,0);
-      display.print ("Bluetooth:");
-      display.setCursor(0,20);
-      if(ble_connection_state)
-      {
-        display.fontColor(GREEN,BLACK);
-        display.print("Connected");
-      }
-      else
-      {
-        display.fontColor(RED,BLACK);
-        display.print("Disconnected");
-      }
-      delay(1000);
-      display.clearScreen();
-      break;
-    }
-    
     /* --> Removed: server-side, buttons disabled until have a required function
     if (display.getButtons(TSButtonLowerLeft)) {
       display.clearScreen();
@@ -109,13 +85,8 @@ void loop() {
     aci_loop();//Process any ACI commands or events from the NRF8001- main BLE handler, must run often. Keep main loop short.
 
     /* Check if connected to bluetooth */
-//    if(!ble_connection_state)
-//    {
-//      display_prompt();
-//    }
     if(ble_connection_state)
     {
-      SerialMonitorInterface.print("Connected\n");
       display.clearScreen();
       display.setFont(liberationSans_10ptFontInfo);
       display.fontColor(GREEN,BLACK);
@@ -124,17 +95,6 @@ void loop() {
       display.setCursor(0,30);
       display.print("Waiting for reply");
       delay(1000);
-      if (display.getButtons(TSButtonLowerLeft)) {
-        display.clearScreen();
-        display.setFont(liberationSans_10ptFontInfo);
-        display.fontColor(GREEN,BLACK);
-        display.setCursor(5,20);
-        display.print("Disconnected");
-        delay(1000);
-        GAP_DisconnectionComplete_CB();
-        delay(1000);
-        break;
-      }
       /*
       display.clearScreen();
       display.setFont(liberationSans_10ptFontInfo);
@@ -143,12 +103,9 @@ void loop() {
       display.print("Not Connected");
       delay(1000);
       */
-
-//      lib_aci_send_data(0, "1", 2);
-//      ble_rx_buffer_len = 0;
-
-      if (ble_rx_buffer_len) //Check if data is available     
-      {
+      
+      if (ble_rx_buffer_len) //Check if data is available 
+      {    
         if(ble_connection_state)
         {
           /*
@@ -223,6 +180,22 @@ void loop() {
         }
         
         ble_rx_buffer_len = 0;//clear afer reading
+      }
+      else /* No Data */
+      {
+          /* If connection is made - Send a reply before disconnecting */
+          if (ble_connection_state)
+          {
+            GAP_DisconnectionComplete_CB();
+            display.clearScreen();
+            display.setFont(liberationSans_10ptFontInfo);
+            display.fontColor(GREEN,BLACK);
+            display.setCursor(5,20);
+            display.print("Disconnected");
+            delay(2000);
+          }   
+          display.clearScreen();
+          display_prompt();  
       }
     }
     

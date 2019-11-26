@@ -82,6 +82,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     public static String global_receiver_message = "";    /* Received message from Tinyduino Bluetooth */
     public static String global_target_bluetooth_ID = ""; /* Connected Tinyduino Bluetooth ID */
     public static String global_target_bluetooth_name = ""; /* Connected Tinyduino Bluetooth name */
+    public boolean UART_SUPPORT_TOKEN = true; /* Token for checking */
 
     TextView mRemoteRssiVal;
     RadioGroup mRg;
@@ -196,11 +197,21 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
 
         /* Function to receive from BLE Tinyduino */
         public void onReceive(Context context, Intent intent) {
+            /*
+                When information is received
+                - Retrieve Actions
+                    - i.e.
+                        - intentFilter.addAction(UartService.ACTION_GATT_CONNECTED);
+                        - intentFilter.addAction(UartService.ACTION_GATT_DISCONNECTED);
+                        - intentFilter.addAction(UartService.ACTION_GATT_SERVICES_DISCOVERED);
+                        - intentFilter.addAction(UartService.ACTION_DATA_AVAILABLE);
+                        - intentFilter.addAction(UartService.DEVICE_DOES_NOT_SUPPORT_UART);
+             */
             String action = intent.getAction();
 
             final Intent mIntent = intent;
            //*********************//
-            /* After connecting to selected Bluetooth device */
+            /* After connecting to selected Bluetooth device - Apply appropriate action */
             if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
             	 runOnUiThread(new Runnable() {
                      public void run() {
@@ -213,7 +224,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                              global_target_bluetooth_name = mDevice.getName(); /* Retrieve connected device's bluetooth name */
                              showMessage("DEBUG:" + "\n" + "Connected Bluetooth ID:" + " " + global_target_bluetooth_ID + "\n" + "Connected Bluetooth Name:" + " " + global_target_bluetooth_name); //DEBUG: Testing output
                              listAdapter.add("["+currentDateTimeString+"] Connected to: "+ mDevice.getName());
-                        	 	messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                             messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
                              mState = UART_PROFILE_CONNECTED;
                      }
             	 });
@@ -246,7 +257,6 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
             }
           //*********************//
             if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
-
                  final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
                  runOnUiThread(new Runnable() {
                      public void run() {
@@ -256,37 +266,141 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                             {
                                 global_receiver_message = text;
                             }
-                         	else
-                            {
-                                global_receiver_message = "Empty";
-                            }
                          	/* Function/Action : If received message is '1' :
                          	Disconnect from current bluetooth
                          	Search for Bluetooth and
                          	Select
                          	*/
+
                              if(global_receiver_message.contains("1"))
                              {
-                                 showMessage("Received 1 : Searching for bluetooth" + " " + "[" + global_target_bluetooth_name + "]" + " " + "and connecting ");
 
-                                 //Disconnect device
-                                 //mService.disconnect();
-
-                                 //Connect to [Lock] Server device
-                                 showMessage(accepted_bluetooth_ID);
-                                 //global_receiver_message = "";
-                                 //mService.connect(accepted_bluetooth_ID);
-
-
-                                 //On Connect:
-                                 mService.writeRXCharacteristic("1".getBytes("UTF-8"));
-                                 //Disconnect after sending
-                                 //mService.disconnect();
                              }
+//                             /* Disconnect from Watch */
+//                             if (mDevice!=null)
+//                             {
+//                                 mService.disconnect();
+//                                 mDevice = null;
+//                             }
+////                                 mState = UART_PROFILE_DISCONNECTED;
+////                                 mService.disconnect();
+//
+//                             //Disconnect device
+//                             //mService.disconnect();
+////                                 if (mBtAdapter.isEnabled()) {
+////                                     Log.i(TAG, "onResume - BT not enabled yet");
+////                                     Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+////                                     startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+////                                 }
+//
+//                             //Connect to [Lock] Server device
+//                             showMessage("Received 1 : Searching for bluetooth" + " " + "[" + accepted_bluetooth_ID + "]" + " " + "and connecting ");
+//                             //global_receiver_message = "";
+//                             //mService.connect(accepted_bluetooth_ID);
+//
+//                             /* Search for required Bluetooth ID */
+//                             /* If connection to server is successful - Send message then disconnect */
+//                             if(mDevice == null) {
+//                                 mDevice = mBtAdapter.getRemoteDevice(global_target_bluetooth_ID);
+//                                 showMessage("Device Address: " + mDevice.getAddress());
+//                                 if (mService.connect(mDevice.getAddress())) {
+//                                     try {
+//                                         mState = UART_PROFILE_CONNECTED;
+//                                         showMessage("Connected to:" + mDevice.getAddress());
+//
+//                                         //On Connect:
+//                                         mService.writeRXCharacteristic("1".getBytes("UTF-8"));
+//                                     } catch (Exception ex) {
+//                                         showMessage(ex.getMessage().toString());
+//                                         Log.e(TAG, "Exception [302]:" + ex.getMessage().toString());
+//                                     }
+//                                 }
+//                                 else {
+//                                     showMessage("Unable to connect to:" + mDevice.getAddress());
+//                                     Log.e(TAG, "Unable to connect to:" + mDevice.getAddress() + "," + mDevice.getName());
+//                                 }
+//                             }
+//                             else
+//                             {
+//                                 showMessage("Address : " + mDevice.getAddress() + "\n" + "Name : " + mDevice.getName());
+//                             }
+
+                             if(mDevice != null) {
+                                 mService.disconnect();
+                                 //mService = null;
+                                 //mState = UART_PROFILE_DISCONNECTED;
+                             }
+
+                             String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                             listAdapter.add("\n"); /* Add a new line */
+                             listAdapter.add("["+currentDateTimeString+"] TX Acknowledgement: " + global_receiver_message);
+
+                             mDevice = mBtAdapter.getRemoteDevice(accepted_bluetooth_ID);
+                             //boolean connect_ret = mService.connect(accepted_bluetooth_ID);
+                             boolean connect_ret = mService.connect(mDevice.getAddress());
+
+                             if (connect_ret) /* If connected successfully */
+                             {
+                                 showMessage("Connection to [" + accepted_bluetooth_ID + "]" + ":" + "success");
+
+                                 currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                                 listAdapter.add("["+currentDateTimeString+"] DEBUGGING: " + "CONNECTION_SUCCESS");
+
+                                 //mState = UART_PROFILE_CONNECTED;
+
+                                 //ERROR Device does not support UART: Sending message : mService.writeRXCharacteristic(("SMARTLOCK" + "_" + global_receiver_message).getBytes("UTF-8"));
+                                 /* UPDATE 2019/11/25 0219 - Error [ This device doesn't support UART ] is produced from the following line
+                                  * mService.writeRXCharacteristic(("SMARTLOCK" + "_" + global_receiver_message).getBytes("UTF-8"));
+                                  *  -> if i remove,
+                                  *  -> phone is able to redirect and connect to the server device, albeit on the second try - but able to connect
+                                  * */
+
+                                 String txMsg = "SMARTLOCK" + "_" + global_receiver_message;
+                                 showMessage(txMsg);
+                                 mService.writeRXCharacteristic(txMsg.getBytes("UTF-8"));
+                                 currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                                 if (UART_SUPPORT_TOKEN)
+                                 {
+                                     listAdapter.add("[" + currentDateTimeString + "]" + " " + "[" + UART_SUPPORT_TOKEN + "]" + " " + ":" + " " + "Message Transmission Success!");
+                                 }
+                                 else
+                                 {
+                                     listAdapter.add("[" + currentDateTimeString + "]" + " " + "[" + UART_SUPPORT_TOKEN + "]" + " " + ":" + " " + "Message Transmission Failed!");
+                                 }
+//                                 try {
+//
+//                                 }
+//                                 catch (Exception ex_transmission)
+//                                 {
+//                                     currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+//                                     listAdapter.add("["+currentDateTimeString+"] Unable to transmit message, error" + " " + "[" + ex_transmission.getMessage().toString() + "]");
+//                                 }
+                             }
+                             else /* If connection failed */
+                             {
+                                 currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                                 showMessage("Connection to [" + accepted_bluetooth_ID + "]" + ":" + "failed");
+                                 listAdapter.add("["+currentDateTimeString+"] DEBUGGING: " + "CONNECTION_FAILED");
+                             }
+
+//                            try {
+//                             }
+//                             catch (Exception ex)
+//                             {
+//                                 showMessage("Exception Met:" + ex.getMessage().toString());
+//                                 listAdapter.add("[" + currentDateTimeString + "]" + "Connection to [" + accepted_bluetooth_ID + "]" + ":" + "error" + " " + "(" + ex.getMessage().toString() + ")");
+//                                 Log.e(TAG, "Exception met:" + ex.getMessage().toString());
+//                             }
+
+                             if(mDevice != null) {
+                                 mService.disconnect();
+                                 //mState = UART_PROFILE_DISCONNECTED;
+                             }
+
                              //showMessage("DEBUG:" + "\n" + global_receiver_message); /* DEBUG: Display retrieved message */
-                         	 String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-                        	 	listAdapter.add("["+currentDateTimeString+"] RX: "+text);
-                        	 	messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                         	 currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                             listAdapter.add("["+currentDateTimeString+"] RX: "+text);
+                             messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
                          } catch (Exception e) {
                              Log.e(TAG, e.toString());
                          }
@@ -295,11 +409,10 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
              }
            //*********************//
             if (action.equals(UartService.DEVICE_DOES_NOT_SUPPORT_UART)){
+                UART_SUPPORT_TOKEN = false;
             	showMessage("Device doesn't support UART. Disconnecting");
             	mService.disconnect();
             }
-
-
         }
     };
 
@@ -336,7 +449,6 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
         unbindService(mServiceConnection);
         mService.stopSelf();
         mService= null;
-       
     }
 
     @Override
@@ -415,7 +527,8 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
 
     
     private void showMessage(String msg) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
     }
 
     @Override
